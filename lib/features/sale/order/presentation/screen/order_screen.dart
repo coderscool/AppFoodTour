@@ -1,130 +1,81 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class OrderManageScreen extends StatefulWidget {
-  const OrderManageScreen({super.key});
+import '../../data/order_model.dart';
+
+class OrderScreen extends StatefulWidget {
+  const OrderScreen({super.key});
 
   @override
-  State<OrderManageScreen> createState() => _OrderManageScreenState();
+  State<OrderScreen> createState() => _OrderScreenState();
 }
 
-class _OrderManageScreenState extends State<OrderManageScreen> {
-  List<Map<String, dynamic>> orders = [
-    {
-      "id": "1",
-      "customerName": "Nguyễn Văn A",
-      "address": "123 Lê Lợi, Q1",
-      "total": 150000,
-      "status": "pending",
-    },
-    {
-      "id": "2",
-      "customerName": "Trần Thị B",
-      "address": "456 Hai Bà Trưng, Q3",
-      "total": 200000,
-      "status": "preparing",
-    },
-  ];
+class _OrderScreenState extends State<OrderScreen> {
+  late Future<List<OrderGroup>> futureOrders;
 
-  void updateOrderStatus(String id, String newStatus) {
-    setState(() {
-      final index = orders.indexWhere((order) => order['id'] == id);
-      if (index != -1) {
-        orders[index]['status'] = newStatus;
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    futureOrders = fetchOrders();
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Cập nhật đơn hàng $id → $newStatus')),
+  Future<List<OrderGroup>> fetchOrders() async {
+    final response = await http.get(
+      Uri.parse("http://10.0.2.2:7275/api/order/seller?Id=686f30e7e5479c74cd793576&Limit=5&Offset=0"),
     );
-  }
 
-  Widget _buildActions(Map<String, dynamic> order) {
-    switch (order['status']) {
-      case 'pending':
-        return Row(
-          children: [
-            ElevatedButton(
-              onPressed: () =>
-                  updateOrderStatus(order['id'], 'preparing'),
-              child: const Text('Chấp nhận'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: () => updateOrderStatus(order['id'], 'rejected'),
-              child: const Text('Huỷ'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            ),
-          ],
-        );
-      case 'preparing':
-        return ElevatedButton(
-          onPressed: () => updateOrderStatus(order['id'], 'done'),
-          child: const Text('Hoàn thành chuẩn bị'),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-        );
-      case 'done':
-        return const Text('✅ Đã hoàn thành',
-            style: TextStyle(color: Colors.green));
-      case 'rejected':
-        return const Text('❌ Đã huỷ',
-            style: TextStyle(color: Colors.red));
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return Colors.blueGrey;
-      case 'preparing':
-        return Colors.orange;
-      case 'done':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      default:
-        return Colors.grey;
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final items = data['items'] as List;
+      return items.map((e) => OrderGroup.fromJson(e)).toList();
+    } else {
+      throw Exception("Lỗi khi tải đơn hàng");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Quản lý đơn hàng')),
-      body: ListView.builder(
-        itemCount: orders.length,
-        itemBuilder: (context, index) {
-          final order = orders[index];
-          return Card(
-            margin: const EdgeInsets.all(12),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Khách: ${order['customerName']}",
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 8),
-                  Text("Địa chỉ: ${order['address']}"),
-                  Text("Tổng tiền: ${order['total']}đ"),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Trạng thái: ${order['status'].toUpperCase()}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: _statusColor(order['status']),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildActions(order),
-                ],
-              ),
-            ),
+      appBar: AppBar(title: const Text("Danh sách đơn hàng")),
+      body: FutureBuilder<List<OrderGroup>>(
+        future: futureOrders,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text("Lỗi: ${snapshot.error}"));
+          }
+
+          final orders = snapshot.data!;
+
+          return ListView.builder(
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              final order = orders[index];
+
+              return Card(
+                margin: const EdgeInsets.all(8),
+                child: ExpansionTile(
+                  title: Text("Đơn hàng #${order.orderId}"),
+                  subtitle: Text("Trạng thái: ${order.status}"),
+                  children: order.items.map((item) {
+                    return ListTile(
+                      leading: Image.network(item.dish.image, width: 50, height: 50, fit: BoxFit.cover),
+                      title: Text(item.dish.name),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("SL: ${item.quantity} | Ghi chú: ${item.note}"),
+                          Text("Giá: ${item.price.cost}đ"),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
           );
         },
       ),

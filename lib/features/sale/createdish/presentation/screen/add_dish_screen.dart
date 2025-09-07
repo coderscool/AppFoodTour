@@ -1,173 +1,137 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 class AddDishScreen extends StatefulWidget {
-  const AddDishScreen({super.key});
+  const AddDishScreen({Key? key}) : super(key: key);
 
   @override
   State<AddDishScreen> createState() => _AddDishScreenState();
 }
 
 class _AddDishScreenState extends State<AddDishScreen> {
-  File? _selectedImage;
-  final _picker = ImagePicker();
+  final nameController = TextEditingController();
+  final imageController = TextEditingController();
+  final descriptionController = TextEditingController();
 
-  final _nameController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _descController = TextEditingController();
+  final costController = TextEditingController();
+  final discountController = TextEditingController();
+  final quantityController = TextEditingController();
 
-  String? _selectedCountry;
-  final List<String> _countries = ['Việt Nam', 'Thái Lan', 'Hàn Quốc', 'Nhật Bản'];
+  final extraNameController = TextEditingController();
+  final extraPriceController = TextEditingController();
 
-  final List<String> _dishTypes = ['Món chính', 'Khai vị', 'Tráng miệng', 'Nước uống'];
-  final Set<String> _selectedTypes = {};
+  final nationController = TextEditingController();
+  final categoryController = TextEditingController();
 
-  Future<void> _pickImage() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
+  List<Map<String, dynamic>> extras = [];
+  List<String> categories = [];
+
+  void addExtra() {
+    if (extraNameController.text.isNotEmpty && extraPriceController.text.isNotEmpty) {
       setState(() {
-        _selectedImage = File(picked.path);
+        extras.add({
+          'name': extraNameController.text,
+          'price': double.tryParse(extraPriceController.text) ?? 0,
+        });
+        extraNameController.clear();
+        extraPriceController.clear();
       });
     }
   }
 
-  void _submitDish() {
-    // Validate & gửi dữ liệu ở đây
-    print('Tên món: ${_nameController.text}');
-    print('Giá: ${_priceController.text}');
-    print('Mô tả: ${_descController.text}');
-    print('Quốc gia: $_selectedCountry');
-    print('Loại món: $_selectedTypes');
-    print('Ảnh: ');
+  void addCategory() {
+    if (categoryController.text.isNotEmpty) {
+      setState(() {
+        categories.add(categoryController.text);
+        categoryController.clear();
+      });
+    }
+  }
+
+  void submitDish() {
+    final Map<String, dynamic> dishData = {
+      "dish": {
+        "name": nameController.text,
+        "image": imageController.text,
+        "description": descriptionController.text,
+      },
+      "extra": extras,
+      "price": {
+        "cost": double.tryParse(costController.text) ?? 0,
+        "discount": double.tryParse(discountController.text) ?? 0,
+      },
+      "quantity": int.tryParse(quantityController.text) ?? 0,
+      "search": {
+        "nation": nationController.text,
+        "category": categories,
+      }
+    };
+
+    print("Dish JSON:\n$dishData");
+
+    // TODO: Call API to submit `dishData`
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thêm món ăn'),
-        backgroundColor: Colors.deepOrange,
-      ),
+      appBar: AppBar(title: const Text('Thêm Món Ăn')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ảnh món ăn
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 180,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey.shade100,
-                ),
-                child: _selectedImage != null
-                    ? ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(_selectedImage!, fit: BoxFit.cover),
-                )
-                    : const Center(
-                  child: Text('Chọn ảnh món ăn',
-                      style: TextStyle(color: Colors.grey)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+            const Text('Thông tin món ăn', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Tên món')),
+            TextField(controller: imageController, decoration: const InputDecoration(labelText: 'Link ảnh')),
+            TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Mô tả')),
 
-            // Tên món
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Tên món ăn',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
+            const Text('Giá món ăn', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextField(controller: costController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Giá gốc')),
+            TextField(controller: discountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Giảm giá')),
 
-            // Giá tiền
-            TextField(
-              controller: _priceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Giá tiền (VNĐ)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
+            const Text('Số lượng', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextField(controller: quantityController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Số lượng')),
 
-            // Mô tả
-            TextField(
-              controller: _descController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Mô tả món ăn',
-                border: OutlineInputBorder(),
-              ),
+            const SizedBox(height: 20),
+            const Text('Topping / Extra', style: TextStyle(fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                Expanded(child: TextField(controller: extraNameController, decoration: const InputDecoration(labelText: 'Tên'))),
+                const SizedBox(width: 8),
+                Expanded(child: TextField(controller: extraPriceController, decoration: const InputDecoration(labelText: 'Giá'), keyboardType: TextInputType.number)),
+                IconButton(onPressed: addExtra, icon: const Icon(Icons.add)),
+              ],
             ),
-            const SizedBox(height: 16),
+            for (var e in extras) Text('${e['name']} - ${e['price']}đ'),
 
-            // Quốc gia
-            const Text('Chọn quốc gia', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _selectedCountry,
-              items: _countries
-                  .map((country) => DropdownMenuItem(
-                value: country,
-                child: Text(country),
-              ))
-                  .toList(),
-              onChanged: (value) => setState(() => _selectedCountry = value),
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
+            const SizedBox(height: 20),
+            const Text('Tìm kiếm (Search)', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextField(controller: nationController, decoration: const InputDecoration(labelText: 'Quốc gia')),
+            Row(
+              children: [
+                Expanded(child: TextField(controller: categoryController, decoration: const InputDecoration(labelText: 'Danh mục'))),
+                IconButton(onPressed: addCategory, icon: const Icon(Icons.add)),
+              ],
             ),
-            const SizedBox(height: 16),
-
-            // Loại món ăn
-            const Text('Chọn loại món ăn', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children: _dishTypes.map((type) {
-                final isSelected = _selectedTypes.contains(type);
-                return ChoiceChip(
-                  label: Text(type),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedTypes.add(type);
-                      } else {
-                        _selectedTypes.remove(type);
-                      }
-                    });
-                  },
-                  selectedColor: Colors.deepOrange.shade200,
-                );
-              }).toList(),
+              children: categories.map((cat) => Chip(label: Text(cat))).toList(),
             ),
 
             const SizedBox(height: 24),
             Center(
               child: ElevatedButton.icon(
+                onPressed: submitDish,
                 icon: const Icon(Icons.check),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                onPressed: _submitDish,
                 label: const Text('Thêm món ăn'),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 }
+

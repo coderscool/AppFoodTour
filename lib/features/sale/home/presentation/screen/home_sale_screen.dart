@@ -70,7 +70,7 @@ class HomeSaleScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const OrderManageScreen()),
+                      MaterialPageRoute(builder: (context) => const OrderScreen()),
                     );
                   },
                   icon: const Icon(Icons.add, color: Colors.deepOrange),

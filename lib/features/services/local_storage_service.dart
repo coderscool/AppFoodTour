@@ -47,5 +47,14 @@ class LocalStorageService {
     await prefs.setString(_roleKey, role);
     await prefs.setString(_tokenKey, token);
     await prefs.setString(_idKey, id);
+    await prefs.setBool(_isLoggedInKey, true);
+  }
+
+  static Future<void> clearLoginInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_roleKey);
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_idKey);
+    await prefs.setBool(_isLoggedInKey, false);
   }
 }

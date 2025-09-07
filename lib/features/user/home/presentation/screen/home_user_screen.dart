@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:appfoodtour/features/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../../../dish/presentation/screen/dish_detail_screen.dart';
+import '../../data/cart_model.dart';
 import '../../data/dish_model.dart';
 
 class HomeUserScreen extends StatefulWidget {
@@ -301,6 +303,41 @@ class _TrendingDishCard extends StatelessWidget {
   final TrendingDish dish;
   final double cardWidth;
 
+  Future<void> _addCartItem() async {
+    final cartId = await LocalStorageService.getUserId();
+    final url = Uri.parse('http://10.0.2.2:7275/api/shoppingcart/add-cart-item?CartId=$cartId'); // Đổi endpoint nếu khác
+
+    final request =  CartItem(
+        restaurantId: dish.restaurantId,
+        dishId: dish.id,
+        extra: [],
+        dish: Dish(
+          name: "Cơm cuộn Sushi",
+          image: "https://vuanoitro.vn/wp-content/uploads/2017/12/tao-bien-cuon-com-yaki-sushi-nori-1-min.jpg",
+          description: "Hương vị truyền thống đến từ Nhật Bản",
+        ),
+        price: Price(
+          cost: 60000,
+          discount: 0,
+        ),
+        quantity: 2,
+        note: "Ít cay",
+      );
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(request.toJson()),
+    );
+
+    if (response.statusCode == 202) {
+      print(" Gửi món vào giỏ hàng thành công");
+    } else {
+      print("Thất bại: ${response.statusCode}");
+      print(response.body);
+    }
+  }
+
   const _TrendingDishCard({required this.dish, required this.cardWidth});
 
   @override
@@ -414,11 +451,7 @@ class _TrendingDishCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Đã thêm ${dish.dish.name} vào giỏ')),
-                      );
-                    },
+                    onPressed: _addCartItem,
                     child: const Text(
                       'Thêm món',
                       style: TextStyle(fontSize: 12, color: Colors.white),
