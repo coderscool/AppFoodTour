@@ -1,3 +1,4 @@
+import 'package:appfoodtour/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:appfoodtour/features/auth/presentation/screen/login_screen.dart';
 import 'package:appfoodtour/features/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late Future<Map<String, dynamic>> _loginStatusFuture;
-
+  String? Id;
   @override
   void initState() {
     super.initState();
@@ -21,6 +22,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<Map<String, dynamic>> _getLoginStatus() async {
     final isLoggedIn = await LocalStorageService.isLoggedIn();
     final role = await LocalStorageService.getUserRole();
+    final AuthLocalDataSource localDataSource = AuthLocalDataSourceImpl();
+    final id = await localDataSource.getUserId();
+    setState(() {
+      Id = id;
+    });
     return {
       'isLoggedIn': isLoggedIn,
       'role': role,
@@ -65,6 +71,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text('Bạn đã đăng nhập với vai trò:'),
+                Id == null
+                    ? const CircularProgressIndicator()
+                    : Text("User ID: $Id"),
                 const SizedBox(height: 8),
                 Text(
                   role,

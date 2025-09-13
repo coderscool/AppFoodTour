@@ -2,7 +2,7 @@ import 'package:appfoodtour/features/delivery/home/presentation/screen/home_deli
 import 'package:appfoodtour/features/sale/home/presentation/screen/home_sale_screen.dart';
 import 'package:appfoodtour/features/services/local_storage_service.dart';
 import 'package:appfoodtour/features/services/location_service.dart';
-import 'package:appfoodtour/features/user/footer/presentation/screen/footer_screen.dart';
+import 'package:appfoodtour/features/user/footer/presentation/screen/user_main_screen.dart';
 //import 'package:appfoodtour/features/user/home/presentation/screen/home_user_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -42,13 +42,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     // Điều hướng
     Widget nextScreen;
     if (!isLoggedIn || role == 'user') {
-      nextScreen = const FooterScreen();
+      nextScreen = const UserMainScreen();
     } else if (role == 'sale') {
       nextScreen = const HomeSaleScreen();
     } else if (role == 'shipper') {
       nextScreen = const HomeDeliveryScreen();
     } else {
-      nextScreen = const FooterScreen();
+      nextScreen = const UserMainScreen();
     }
 
     if (!mounted) return;

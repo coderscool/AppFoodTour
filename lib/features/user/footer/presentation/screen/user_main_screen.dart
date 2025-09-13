@@ -5,14 +5,14 @@ import 'package:appfoodtour/features/user/profile/presentation/screen/profile_sc
 import 'package:appfoodtour/features/user/store/presentation/screen/store_list_screen.dart';
 import 'package:flutter/material.dart';
 
-class FooterScreen extends StatefulWidget {
-  const FooterScreen({super.key});
+class UserMainScreen extends StatefulWidget {
+  const UserMainScreen({super.key});
 
   @override
-  State<FooterScreen> createState() => _FooterScreenState();
+  State<UserMainScreen> createState() => _UserMainScreenState();
 }
 
-class _FooterScreenState extends State<FooterScreen> {
+class _UserMainScreenState extends State<UserMainScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = const [

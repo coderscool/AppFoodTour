@@ -1,23 +1,30 @@
+import 'package:appfoodtour/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:appfoodtour/features/auth/domain/usecases/register_seller_usecase.dart';
 import 'package:appfoodtour/features/welcome/presentation/screen/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'core/network/dio_client.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 
 void main() {
-  final remoteDataSource = AuthRemoteDataSourceImpl();
+  final dioClient = DioClient();
 
-  final authRepository = AuthRepositoryImpl(remoteDataSource);
+  final remoteDataSource = AuthRemoteDataSourceImpl(dioClient);
+  final localDataSource = AuthLocalDataSourceImpl();
+
+  final authRepository = AuthRepositoryImpl(remoteDataSource, localDataSource);
 
   final loginUseCase = LoginUseCase(authRepository);
+  final registerSellerUseCase = RegisterSellerUseCase(authRepository);
 
   runApp(
     MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => AuthBloc(loginUseCase),
+          create: (_) => AuthBloc(loginUseCase, registerSellerUseCase),
         ),
       ],
       child: const MyApp(),

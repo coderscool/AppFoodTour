@@ -12,3 +12,10 @@ class AuthError extends AuthState {
   final String message;
   AuthError(this.message);
 }
+
+class RegisterSuccess extends AuthState {}
+
+class RegisterFailure extends AuthState {
+  final String message;
+  RegisterFailure(this.message);
+}

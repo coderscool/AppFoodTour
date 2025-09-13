@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
 import 'custom_text_field.dart';
 import 'primary_button.dart';
 
@@ -16,8 +19,9 @@ class _LoginFormState extends State<LoginForm> {
 
   void _onLoginPressed() {
     if (_formKey.currentState!.validate()) {
-      // TODO: gọi Bloc/Provider để login
-      debugPrint("Login with: ${_emailController.text}");
+      context.read<AuthBloc>().add(
+        LoginEvent(_emailController.text, _passwordController.text),
+      );
     }
   }
 
