@@ -1,5 +1,5 @@
 import 'package:appfoodtour/features/delivery/home/presentation/screen/home_delivery_screen.dart';
-import 'package:appfoodtour/features/sale/home/presentation/screen/home_sale_screen.dart';
+import 'package:appfoodtour/features/sale/sale_main_screen.dart';
 import 'package:appfoodtour/features/user/home/presentation/screen/home_user_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,12 +17,13 @@ class LoginScreen extends StatelessWidget {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Authenticated) {
-          if (state.user.role == "admin") {
-            Navigator.pushReplacement(
+          if (state.user.role == "seller") {
+            Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
-                builder: (_) => const HomeSaleScreen(),
+                builder: (_) => const SaleMainScreen()
               ),
+                  (Route<dynamic> route) => false,
             );
           } else if (state.user.role == "user") {
             Navigator.pushReplacement(

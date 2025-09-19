@@ -1,6 +1,5 @@
 import 'package:appfoodtour/features/auth/data/models/register_response_model.dart';
 import 'package:geocoding/geocoding.dart';
-
 import '../datasources/auth_local_datasource.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
