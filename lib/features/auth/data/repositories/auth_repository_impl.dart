@@ -9,7 +9,7 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDatasource;
 
-  AuthRepositoryImpl(this.remoteDataSource, this.localDatasource);
+  AuthRepositoryImpl({required this.remoteDataSource, required this.localDatasource});
 
   @override
   Future<User> login(String username, String password) async {
